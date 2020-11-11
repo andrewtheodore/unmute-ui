@@ -220,12 +220,9 @@ border-radius: 8px;
     margin-top: 12px;
 }
 
-.rightchatbubble{
-    display: flex;
-    flex-direction: flex-end;
-}
 
 .rightchatbubble{
     display: flex;
     flex-direction: row-reverse;
+    margin-right: 70px;
 }
