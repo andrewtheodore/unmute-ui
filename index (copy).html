@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Speech Sample</title>
+    <meta charset="utf-8" />
+</head>
+
+<body style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:13px;">
+    <div id="warning">
+        <h1 style="font-weight:500;">Speech Recognition Speech SDK not found
+            (microsoft.cognitiveservices.speech.sdk.bundle.js missing).</h1>
+    </div>
+    <div id="content" style="display:none">
+        <table>
+            <tr>
+                <td></td>
+                <td>
+                    <h1 style="font-weight:500;">Speech Recognition</h1>
+                    <h2 style="font-weight:500;">Microsoft Cognitive Services</h2>
+                </td>
+            </tr>
+            <tr>
+                <td align="right"><a href="https://www.microsoft.com/cognitive-services/sign-up"
+                        target="_blank">Subscription</a>:</td>
+                <td><input id="key" type="text" size="40" value="YOUR_SPEECH_API_KEY"><b>YOUR_SPEECH_API_KEY</b></td>
+            </tr>
+            <tr>
+                <td align="right">Language:</td>
+                <td align="left">
+                    <!-- For the full list of supported languages see: https://docs.microsoft.com/azure/cognitive-services/speech-service/supported-languages -->
+                    <select id="languageOptions">
+                        <option value="ar-EG">Arabic - EG</option>
+                        <option value="ca-ES">Catalan - ES</option>
+                        <option value="da-DK">Danish - DK</option>
+                        <option value="da-DK">Danish - DK</option>
+                        <option value="de-DE">German - DE</option>
+                        <option value="en-AU">English - AU</option>
+                        <option value="en-CA">English - CA</option>
+                        <option value="en-GB">English - GB</option>
+                        <option value="en-IN">English - IN</option>
+                        <option value="en-NZ">English - NZ</option>
+                        <option value="en-US" selected="selected">English - US</option>
+                        <option value="es-ES">Spanish - ES</option>
+                        <option value="es-MX">Spanish - MX</option>
+                        <option value="fi-FI">Finnish - FI</option>
+                        <option value="fr-CA">French - CA</option>
+                        <option value="fr-FR">French - FR</option>
+                        <option value="hi-IN">Hindi - IN</option>
+                        <option value="it-IT">Italian - IT</option>
+                        <option value="ja-JP">Japanese - JP</option>
+                        <option value="ko-KR">Korean - KR</option>
+                        <option value="nb-NO">Norwegian - NO</option>
+                        <option value="nl-NL">Dutch - NL</option>
+                        <option value="pl-PL">Polish - PL</option>
+                        <option value="pt-BR">Portuguese - BR</option>
+                        <option value="pt-PT">Portuguese - PT</option>
+                        <option value="ru-RU">Russian - RU</option>
+                        <option value="sv-SE">Swedish - SE</option>
+                        <option value="zh-CN">Chinese - CN</option>
+                        <option value="zh-HK">Chinese - HK</option>
+                        <option value="zh-TW">Chinese - TW</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td align="right">Region:</td>
+                <td align="left">
+                    <select id="regionOptions">
+                        <option value="westus" selected="selected">West US</option>
+                        <option value="westus2">West US2</option>
+                        <option value="eastus">East US</option>
+                        <option value="eastus2">East US2</option>
+                        <option value="eastasia">East Asia</option>
+                        <option value="southeastasia">South East Asia</option>
+                        <option value="northeurope">North Europe</option>
+                        <option value="westeurope">West Europe</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td align="right">Format:</td>
+                <td align="left">
+                    <select id="formatOptions">
+                        <option value="Simple" selected="selected">Simple Result</option>
+                        <option value="Detailed">Detailed Result</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td align="right">Input:</td>
+                <td align="left">
+                    <select id="inputSource">
+                        <option value="Mic" selected="selected">Microphone</option>
+                        <option value="File">Audio File</option>
+                    </select>
+                    <select id="microphoneSource" style="display:none">
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <input type="file" id="filePicker" accept=".wav" style="display:none" />
+                </td>
+            </tr>
+            <tr>
+                <td align="right"><b>Speech SDK API Continuous Speech Recognition:</b></td>
+                <td>
+                    <button id="speechsdkStartContinuousRecognition">startContinuousRecognitionAsync()</button>
+                    <button id="speechsdkStopContinuousRecognition" disabled="disabled">STOP
+                        stopContinuousRecognitionAsync()</button>
+                </td>
+            </tr>
+            <tr>
+                <td align="right">Results:</td>
+                <td align="left">
+                    <textarea id="phraseDiv" style="display: inline-block;width:500px;height:200px"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td align="right">Events:</td>
+                <td align="left"><textarea id="statusDiv"
+                        style="display: inline-block;width:500px;height:200px;overflow: scroll;white-space: nowrap;"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Speech SDK REFERENCE -->
+    <script src="microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
+
+    <!-- Speech Speech SDK Authorization token -->
+    <script>
+        // Note: Replace the URL with a valid endpoint to retrieve
+        //       authorization tokens for your subscription.
+
+        // An authorization token is a more secure method to authenticate for a browser deployment as
+        // it allows the subscription keys to be kept secure on a server and a 10 minute use token to be
+        // handed out to clients from an endpoint that can be protected from unauthorized access.
+        var authorizationEndpoint = "token.php";
+
+        function RequestAuthorizationToken() {
+            if (authorizationEndpoint) {
+                var a = new XMLHttpRequest();
+                a.open("GET", authorizationEndpoint);
+                a.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                a.send("");
+                a.onload = function () {
+                    var token = JSON.parse(atob(this.responseText.split(".")[1]));
+                    regionOptions.value = token.region;
+                    authorizationToken = this.responseText;
+                    key.disabled = true;
+                    key.value = "using authorization token (hit F5 to refresh)";
+                    console.log("Got an authorization token: " + token);
+                }
+            }
+        }
+    </script>
+
+    <!-- Speech SDK USAGE -->
+    <script>
+        // On document load resolve the Speech SDK dependency
+        function Initialize(onComplete) {
+            if (!!window.SpeechSDK) {
+                document.getElementById('content').style.display = 'block';
+                document.getElementById('warning').style.display = 'none';
+                onComplete(window.SpeechSDK);
+            }
+        }
+    </script>
+
+    <!-- Browser Hooks -->
+    <script>
+        var phraseDiv, statusDiv;
+        var key, authorizationToken;
+        var regionOptions;
+        var languageOptions, formatOptions, inputSource, filePicker, microphoneSource;
+        var SpeechSDK;
+        var recognizer;
+
+        var reco;
+        var sdkStartContinousRecognitionBtn, sdkStopContinousRecognitionBtn;
+        var languageTargetOptions, voiceOutput;
+        var audioFile, audioFileValid;
+        var microphoneId;
+
+        var soundContext = undefined;
+        try {
+            var AudioContext = window.AudioContext // our preferred impl
+                || window.webkitAudioContext       // fallback, mostly when on Safari
+                || false;                          // could not find.
+
+            if (AudioContext) {
+                soundContext = new AudioContext();
+            } else {
+                alert("Audio context not supported");
+            }
+        }
+        catch (e) {
+            window.console.log("no sound context found, no audio output. " + e);
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            createBtn = document.getElementById("createBtn");
+            sdkStartContinousRecognitionBtn = document.getElementById("speechsdkStartContinuousRecognition");
+            sdkStopContinousRecognitionBtn = document.getElementById("speechsdkStopContinuousRecognition");
+            //sdkStopContinousTranslationBtn = document.getElementById("speechsdkStopContinuousTranslation");
+            phraseDiv = document.getElementById("phraseDiv");
+            statusDiv = document.getElementById("statusDiv");
+            key = document.getElementById("key");
+            languageOptions = document.getElementById("languageOptions");
+            languageTargetOptions = document.getElementById("languageTargetOptions");
+            voiceOutput = document.getElementById("voiceOutput");
+            regionOptions = document.getElementById("regionOptions");
+            formatOptions = document.getElementById("formatOptions");
+            inputSource = document.getElementById("inputSource");
+            filePicker = document.getElementById('filePicker');
+            microphoneSource = document.getElementById("microphoneSource");
+
+            // Starts continuous speech recognition.
+            sdkStartContinousRecognitionBtn.addEventListener("click", function () {
+                phraseDiv.innerHTML = "";
+                statusDiv.innerHTML = "";
+                var lastRecognized = "";
+
+                var audioConfig;
+                if (audioFileValid) {
+                    audioConfig = SpeechSDK.AudioConfig.fromWavFileInput(audioFile);
+                } else if (undefined != microphoneSource.value) {
+                    console.info("Getting Microphone " + microphoneSource.value);
+                    audioConfig = SpeechSDK.AudioConfig.fromMicrophoneInput(microphoneSource.value);
+                } else {
+                    audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+                }
+
+                var speechConfig;
+                if (authorizationToken) {
+                    speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(authorizationToken, regionOptions.value);
+                } else {
+                    if (key.value === "" || key.value === "YOUR_SPEECH_API_KEY") {
+                        alert("Please enter your Cognitive Services Speech subscription key!");
+                        return;
+                    }
+                    speechConfig = SpeechSDK.SpeechConfig.fromSubscription(key.value, regionOptions.value);
+                }
+
+                speechConfig.speechRecognitionLanguage = languageOptions.value;
+                reco = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+
+                // Before beginning speech recognition, setup the callbacks to be invoked when an event occurs.
+
+                // The event recognizing signals that an intermediate recognition result is received.
+                // You will receive one or more recognizing events as a speech phrase is recognized, with each containing
+                // more recognized speech. The event will contain the text for the recognition since the last phrase was recognized.
+                reco.recognizing = function (s, e) {
+                    window.console.log(e);
+                    statusDiv.innerHTML += "(recognizing) Reason: " + SpeechSDK.ResultReason[e.result.reason] + " Text: " + e.result.text + "\r\n";
+                    phraseDiv.innerHTML = lastRecognized + e.result.text;
+                };
+
+                // The event recognized signals that a final recognition result is received.
+                // This is the final event that a phrase has been recognized.
+                // For continuous recognition, you will get one recognized event for each phrase recognized.
+                reco.recognized = function (s, e) {
+                    window.console.log(e);
+
+                    // Indicates that recognizable speech was not detected, and that recognition is done.
+                    if (e.result.reason === SpeechSDK.ResultReason.NoMatch) {
+                        var noMatchDetail = SpeechSDK.NoMatchDetails.fromResult(e.result);
+                        statusDiv.innerHTML += "(recognized)  Reason: " + SpeechSDK.ResultReason[e.result.reason] + " NoMatchReason: " + SpeechSDK.NoMatchReason[noMatchDetail.reason] + "\r\n";
+                    } else {
+                        statusDiv.innerHTML += "(recognized)  Reason: " + SpeechSDK.ResultReason[e.result.reason] + " Text: " + e.result.text + "\r\n";
+                    }
+
+                    lastRecognized += e.result.text + "\r\n";
+                    phraseDiv.innerHTML = lastRecognized;
+                };
+
+                // The event signals that the service has stopped processing speech.
+                // https://docs.microsoft.com/javascript/api/microsoft-cognitiveservices-speech-sdk/speechrecognitioncanceledeventargs?view=azure-node-latest
+                // This can happen for two broad classes of reasons.
+                // 1. An error is encountered.
+                //    In this case the .errorDetails property will contain a textual representation of the error.
+                // 2. No additional audio is available.
+                //    Caused by the input stream being closed or reaching the end of an audio file.
+                reco.canceled = function (s, e) {
+                    window.console.log(e);
+
+                    statusDiv.innerHTML += "(cancel) Reason: " + SpeechSDK.CancellationReason[e.reason];
+                    if (e.reason === SpeechSDK.CancellationReason.Error) {
+                        statusDiv.innerHTML += ": " + e.errorDetails;
+                    }
+                    statusDiv.innerHTML += "\r\n";
+                };
+
+                // Signals that a new session has started with the speech service
+                reco.sessionStarted = function (s, e) {
+                    window.console.log(e);
+                    statusDiv.innerHTML += "(sessionStarted) SessionId: " + e.sessionId + "\r\n";
+                };
+
+                // Signals the end of a session with the speech service.
+                reco.sessionStopped = function (s, e) {
+                    window.console.log(e);
+                    statusDiv.innerHTML += "(sessionStopped) SessionId: " + e.sessionId + "\r\n";
+                    sdkStartContinousRecognitionBtn.disabled = false;
+                    sdkStopContinousRecognitionBtn.disabled = true;
+                };
+
+                // Signals that the speech service has started to detect speech.
+                reco.speechStartDetected = function (s, e) {
+                    window.console.log(e);
+                    statusDiv.innerHTML += "(speechStartDetected) SessionId: " + e.sessionId + "\r\n";
+                };
+
+                // Signals that the speech service has detected that speech has stopped.
+                reco.speechEndDetected = function (s, e) {
+                    window.console.log(e);
+                    statusDiv.innerHTML += "(speechEndDetected) SessionId: " + e.sessionId + "\r\n";
+                };
+
+                // Starts recognition
+                reco.startContinuousRecognitionAsync();
+
+                sdkStartContinousRecognitionBtn.disabled = true;
+                sdkStopContinousRecognitionBtn.disabled = false;
+            });
+
+            // Stops recognition and disposes of resources.
+            sdkStopContinousRecognitionBtn.addEventListener("click", function () {
+                reco.stopContinuousRecognitionAsync(
+                    function () {
+                        reco.close();
+                        reco = undefined;
+                    },
+                    function (err) {
+                        reco.close();
+                        reco = undefined;
+                    });
+
+                sdkStartContinousRecognitionBtn.disabled = false;
+                sdkStopContinousRecognitionBtn.disabled = true;
+            });
+
+            key.addEventListener("focus", function () {
+                if (key.value === "YOUR_SPEECH_API_KEY") {
+                    key.value = "";
+                }
+            });
+
+            key.addEventListener("focusout", function () {
+                if (key.value === "") {
+                    key.value = "YOUR_SPEECH_API_KEY";
+                }
+            });
+
+            inputSource.addEventListener("change", function () {
+                audioFileValid = inputSource.value === "File";
+
+                if (inputSource.value === "File") {
+                    microphoneSource.disabled = true;
+                    filePicker.click();
+                    return;
+                } else {
+                    microphoneSource.disabled = false;
+
+                }
+            });
+
+            filePicker.addEventListener("change", function () {
+                audioFile = filePicker.files[0];
+            });
+
+            if (navigator && navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+
+                // Enumerate the media devices.
+                navigator.mediaDevices.enumerateDevices().then((devices) => {
+                    var opt = document.createElement('option');
+                    opt.appendChild(document.createTextNode(""));
+                    opt.value = undefined;
+                    microphoneSource.appendChild(opt);
+
+                    for (const device of devices) {
+                        if (device.kind === "audioinput") {
+                            microphoneSource.style = "";
+                            // create new option element
+                            var opt = document.createElement('option');
+
+                            // create text node to add to option element (opt)
+                            opt.appendChild(document.createTextNode(device.label));
+
+                            // set value property of opt
+                            opt.value = device.deviceId;
+
+                            microphoneSource.appendChild(opt);
+                        }
+                    }
+                });
+            }
+
+            Initialize(function (speechSdk) {
+                SpeechSDK = speechSdk;
+                sdkStartContinousRecognitionBtn.disabled = false;
+
+                // in case we have a function for getting an authorization token, call it.
+                if (typeof RequestAuthorizationToken === "function") {
+                    RequestAuthorizationToken();
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
