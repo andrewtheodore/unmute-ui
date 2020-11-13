@@ -1,5 +1,28 @@
 <!DOCTYPE html>
 <html>
+    <!-- <script src="microsoft.cognitiveservices.speech.sdk.bundle.js"></script>; -->
+    <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk@latest/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle-min.js">
+    </script>
+    <script>
+        function synthesizeSpeech() {
+            const speechConfig = sdk.SpeechConfig.fromSubscription("c0fd7628951847d28e692ca87d100ba2", "eastus");
+            const audioConfig = AudioConfig.fromDefaultSpeakerOutput();
+
+            const synthesizer = new SpeechSynthesizer(speechConfig, audioConfig);
+            synthesizer.speakTextAsync(
+                "Synthesizing directly to speaker output.",
+                result => {
+                    if (result) {
+                        console.log(JSON.stringify(result));
+                    }
+                    synthesizer.close();
+                },
+                error => {
+                    console.log(error);
+                    synthesizer.close();
+                });
+        }
+    </script>
     <head>
         <title>Unmute</title>
         <meta charset="utf-8" />
@@ -8,6 +31,11 @@
     </head>
     <body style="background-color: #E5E5E5;">
         <div class="topnavbar">
+            <button onclick="synthesizeSpeech()">
+                haha
+            </button>
+            <p id="demo"></p>
+
             <div class="navbar">
                 <img src="logo_v1 1.png" class="imagelogo"> 
             </div>
